@@ -5,8 +5,16 @@ use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 
+/*
+ * Basic Overview of all the requests we are doing:
+ * 1) Create Presigned URL
+ * 2) Upload the document using the presigned URL
+ * 3) Export to Word
+ * 4) Check the Status of the Export
+ * 5) Download the document
+ */
 Artisan::command('convert', function () {
-    // Create presigned URL
+    // 1) Create presigned URL
     $response = Http::asJson()
         ->baseUrl('https://pdf-services-ew1.adobe.io')
         ->withHeaders([
@@ -23,16 +31,16 @@ Artisan::command('convert', function () {
     // Example: 'urn:aaid:AS:EW1:028755ba-1969-4f7e-a677-9ab83430b72b';
     $assetId = $response->json('assetID');
 
-    // Upload document
+    // 2) Upload the document using the presigned URL
     Http::asMultipart()
         ->withHeaders([
             'Content-Type' => 'application/pdf',
         ])
-        ->put($uploadUri, [
-            'document' => Storage::get('convince.pdf'),
-        ]);
+        ->attach('document', Storage::get('convince.pdf'))
+        ->throw()
+        ->put($uploadUri);
 
-    // Export to Word
+    // 3) Export to Word
     $locationOriginal = Http::asJson()
         ->baseUrl('https://pdf-services-ew1.adobe.io')
         ->withHeaders([
@@ -53,7 +61,7 @@ Artisan::command('convert', function () {
         ->before('/status')
         ->toString();
 
-    // Check status
+    // 4) Check the Status of the Export
     $retry = true;
     do {
         $response = Http::asJson()
@@ -75,12 +83,12 @@ Artisan::command('convert', function () {
     // Example: 'https://dcplatformstorageservice-prod-eu-west-1.s3-accelerate.amazonaws.com/b7a4611d985048c7ac4a6c30d3c1844b_6AD32A806408838B0A495E11%40techacct.adobe.com/ca3d4dac-8623-41c0-926a-aadff82f789c?X-Amz-Security-Token=FwoGZXIvYXdzEHMaDOLP%2BT1VtZ3s55b3xCLUAWkAcVDNS8zrkiOA11Ed2x2D5phqFGWqTYdvhiuoheYnA3hddwg%2FwnoAZgwf%2BUQpQ2nLbRmYrF8f5dxfzkDSfiMj5WwSkb2jHmHX%2B%2FGf4R8SK%2Fzq7YGP%2BuroM2k5PH%2BOOEP5cj%2FMSJBdfdSJKH89hLNxQbYushUcD2VzIl1KvYClDxnbsah7PrXeQxjmdBXuYQI1e32QKiWVe5Z%2BiJhKZTgfUYoSM4Sm6KlsRPIgvY4WBpNG8ujYrpasbSY0AhnMd4WWXcEAQ6Sn8xgqxc8v2NnyUeZ7KLva0KAGMi29V%2FQfLcl2eWreXYOeBP7i8mIQBFVp75DUnbdIIaoDqXvKSdZqQQXnc7Jqy8A%3D&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Date=20230317T090812Z&X-Amz-SignedHeaders=host&X-Amz-Expires=3600&X-Amz-Credential=ASIAWD2N7EVPPJVRS7MR%2F20230317%2Feu-west-1%2Fs3%2Faws4_request&X-Amz-Signature=c3b7e10537bc0e96d344344a0ca1c35ddd5773397871498dcb74c19e199797f7'
     $downloadUrl = $response->json('asset.downloadUri');
 
-    // Download document
+    // 5) Download the document
     $content = Http::get($downloadUrl)->body();
     Storage::put('convince.docx', $content);
 
     // Show success message
     $this->comment(PHP_EOL.PHP_EOL.PHP_EOL.'    🎊🎊🎊🎊🎊🎊🎊🎊🎊🎊🎊🎊🎊🎊🎊🎊🎊🎊🎊🎊');
     $this->comment('    🎊 Conversion completed successfully! 🎊');
-    $this->comment('    🎊🎊🎊🎊🎊🎊🎊🎊🎊🎊🎊🎊🎊🎊🎊🎊🎊🎊🎊🎊'.PHP_EOL.PHP_EOL.PHP_EOL);
+    $this->comment('    🎊🎊🎊🎊🎊🎊🎊🎊🎊🎊🎊🎊🎊🎊🎊🎊🎊🎊🎊🎊'.PHP_EOL.PHP_EOL);
 });
