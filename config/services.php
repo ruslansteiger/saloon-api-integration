@@ -31,4 +31,24 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Adobe PDF Services API
+    |--------------------------------------------------------------------------
+    |
+    | The following credentials are required to communicate with the Adobe PDF
+    | Services API. The API provides a range of features, the great ability
+    | to convert PDF files to the common formats such as Microsoft Word.
+    |
+    */
+
+    'adobe' => [
+
+        'client_id' => env('ADOBE_CLIENT_ID'),
+        'client_secret' => env('ADOBE_CLIENT_SECRET'),
+
+        'private_key' => env('ADOBE_PRIVATE_KEY'),
+
+    ],
+
 ];
