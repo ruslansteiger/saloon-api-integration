@@ -1,4 +1,4 @@
-## 🤠 Building Beautiful API Integrations with Saloon
+## 🤠 Demystifying Saloon: A Step-by-Step Guide
 
 The source code for the talk.
 
